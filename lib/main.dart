@@ -1,8 +1,13 @@
-import 'package:charles_click/pages/home_page.dart';
+import 'package:charles_click/models/webview_provider.dart';
+import 'package:charles_click/pages/landing_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(ChangeNotifierProvider(
+    create: (context) => WebViewProgressProvider(),
+    child: const MainApp(),
+  ));
 }
 
 class MainApp extends StatelessWidget {
@@ -10,9 +15,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: LandingPage(),
     );
   }
 }

@@ -9,10 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.0.0
   awesome_notifications: ^0.9.3+1
   flutter_native_splash: ^2.4.1
-
+  flutter_inappwebview: ^6.0.0
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -35,8 +36,11 @@ flutter_native_splash:
   #? To restore Flutter's default white splash screen, run the following command in the terminal:
   # dart run flutter_native_splash:remove
   image: "assets/mainlogo.png"
-  color: "#42a5f5"
+  color: "#ffffff"
   #background_image: "assets/background.png"
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/mainlogo.png
+    - assets/landing-bg.jpg
