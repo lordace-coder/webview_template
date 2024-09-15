@@ -1,16 +1,30 @@
+import 'package:charles_click/models/app_lock_provider.dart';
 import 'package:charles_click/models/webview_provider.dart';
 import 'package:charles_click/pages/home_pagev2.dart';
-import 'package:charles_click/pages/landing_page.dart';
+import 'package:charles_click/pages/sign_in_page.dart';
 import 'package:charles_click/pages/sign_up_2.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_app_lock/flutter_app_lock.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(ChangeNotifierProvider(
-    create: (context) => WebViewProgressProvider(),
-    child: const MainApp(),
-  ));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final SharedPreferences pref = await SharedPreferences.getInstance();
+  final authProvider = AuthProvider(pref);
+  final isAuth = await authProvider.validateUser();
+  if (!isAuth) {
+    await authProvider.clearUserData();
+  }
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => WebViewProgressProvider()),
+        ChangeNotifierProvider(create: (_) => authProvider),
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -18,6 +32,8 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final hasData = authProvider.hasData();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: AppLock(
@@ -25,10 +41,12 @@ class MainApp extends StatelessWidget {
           return HomePagev2();
         },
         lockScreenBuilder: (c) {
-          // check if a user can use biometrics
-          // check if a users save data is available
-          // if a user can't use biometrics lead him to the [SignIn2] else [SIgnInPage]
-          return SignIn2();
+          // return a diffrent page if a user has no data
+          if (hasData) {
+            return SignIn2();
+          } else {
+            return const SignInPage();
+          }
         },
       ),
     );

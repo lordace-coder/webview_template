@@ -1,3 +1,4 @@
+import 'package:charles_click/services/functions.dart';
 import 'package:flutter/material.dart';
 
 class SignInPage extends StatefulWidget {
@@ -114,6 +115,7 @@ class _SignInPageState extends State<SignInPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     GestureDetector(
+                      onTap: () => handleForgotPassword(context),
                       child: Text(
                         'Forgot Password?',
                         style: TextStyle(color: Colors.indigoAccent.shade700),
@@ -142,7 +144,6 @@ class _SignInPageState extends State<SignInPage> {
                   },
                 ),
                 const SizedBox(height: 30),
-              
               ],
             ),
           ),

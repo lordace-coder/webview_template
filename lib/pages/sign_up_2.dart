@@ -1,3 +1,4 @@
+import 'package:charles_click/services/functions.dart';
 import 'package:charles_click/services/requests.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_lock/flutter_app_lock.dart';
@@ -16,6 +17,7 @@ class _SignIn2State extends State<SignIn2> {
   final passwordController = TextEditingController();
 
   bool isvisible = false;
+
   bool formIsValid() {
     if (passwordController.text.isEmpty) {
       return false;
@@ -66,14 +68,22 @@ class _SignIn2State extends State<SignIn2> {
                     SizedBox(
                       width: 120,
                     ),
-                    Text('Login'),
                   ],
                 ),
-                const SizedBox(height: 90),
-                AppLargeText(
-                  text: 'Welcome Back',
-                  color: Colors.indigoAccent.shade700,
+                Image.asset(
+                  height: 50,
+                  width: 200,
+                  'assets/mainlogo.png',
+                  fit: BoxFit.cover,
                 ),
+                const SizedBox(
+                  height: 10,
+                ),
+                // AppLargeText(
+                //   text: 'Welcome Back',
+                //   color: Colors.indigoAccent.shade700,
+                // ),
+
                 const AppSmallText(
                   text: '080*********',
                   alignCenter: false,
@@ -114,6 +124,9 @@ class _SignIn2State extends State<SignIn2> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       GestureDetector(
+                        onTap: () {
+                          handleForgotPassword(context);
+                        },
                         child: Text(
                           'Forgot Password?',
                           style: TextStyle(color: Colors.indigoAccent.shade700),
@@ -163,29 +176,6 @@ class _SignIn2State extends State<SignIn2> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class CustomPopButton extends StatelessWidget {
-  final Function()? ontap;
-  const CustomPopButton({super.key, required this.ontap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: ontap,
-      child: Container(
-        height: 23,
-        width: 23,
-        decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.circular(7)),
-        child: const Icon(
-          Icons.arrow_back_ios_new_sharp,
-          size: 14,
         ),
       ),
     );

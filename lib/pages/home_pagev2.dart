@@ -1,5 +1,7 @@
 import 'package:charles_click/models/webview_provider.dart';
+import 'package:charles_click/pages/error.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_lock/flutter_app_lock.dart';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
@@ -49,7 +51,7 @@ class _HomePagev2State extends State<HomePagev2> {
 
   @override
   Widget build(BuildContext context) {
-    widget.initialUrl ??= 'https://charlesclicksvtu.com/';
+    widget.initialUrl ??= 'https://charlesclicksvtu.com/mobile/home/';
     final provider =
         Provider.of<WebViewProgressProvider>(context, listen: false);
     return Scaffold(
@@ -79,12 +81,18 @@ class _HomePagev2State extends State<HomePagev2> {
                 }),
                 Expanded(
                   child: InAppWebView(
+                    onReceivedHttpError: (x, y, z) => onError(context),
+                    onReceivedError: (x, y, z) => onError(context),
                     onWebViewCreated: (controller) {
                       this.controller = controller;
                     },
                     pullToRefreshController: refresh,
                     onLoadStart: (_, uri) {
                       provider.setLoading(true);
+                      if (uri!.path.contains('login')) {
+                        //TODO ask the user if they want to continue to the login page since they are not authenticated
+                        AppLock.of(context)!.showLockScreen();
+                      }
                     },
                     onLoadStop: (_, uri) {
                       provider.setLoading(false);
@@ -103,4 +111,12 @@ class _HomePagev2State extends State<HomePagev2> {
           ),
         ));
   }
+}
+
+void onError(
+  BuildContext context,
+) {
+  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) {
+    return const ErrorPage();
+  }));
 }
