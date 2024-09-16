@@ -1,8 +1,14 @@
+import 'package:charles_click/models/app_lock_provider.dart';
 import 'package:charles_click/services/functions.dart';
 import 'package:charles_click/services/requests.dart';
+import 'package:charles_click/services/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_lock/flutter_app_lock.dart';
+import 'package:provider/provider.dart';
 import './sign_in_page.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter/services.dart';
 
 class SignIn2 extends StatefulWidget {
   SignIn2({super.key, this.useBiometrics = false});
@@ -13,37 +19,46 @@ class SignIn2 extends StatefulWidget {
 }
 
 class _SignIn2State extends State<SignIn2> {
-  final phone = TextEditingController();
-  final passwordController = TextEditingController();
-
-  bool isvisible = false;
-
-  bool formIsValid() {
-    if (passwordController.text.isEmpty) {
-      return false;
-    }
-    return true;
-  }
-
   bool isloading = false;
 
   @override
   void dispose() {
     // Dispose of each controller
 
-    passwordController.dispose();
-    phone.dispose();
-
     super.dispose();
   }
 
   /// sign user in
-  unlock() async {
-    AppLock.of(context)?.didUnlock();
-    await isAuthenticated(
-      phone: phone.text,
-      password: passwordController.text,
-    );
+  unlock(BuildContext context) async {
+    final LocalAuthentication auth = LocalAuthentication();
+    // final canCheckBio = await auth.canCheckBiometrics;
+    // final supportedDevice = await auth.isDeviceSupported();
+    // print('can check biometrics $canCheckBio');
+    try {
+      final bool didAuthenticate = await auth.authenticate(
+          localizedReason: 'Please authenticate to use this application',
+          options: const AuthenticationOptions(useErrorDialogs: false));
+      final List<BiometricType> availableBiometrics =
+          await auth.getAvailableBiometrics();
+
+      if (availableBiometrics.isNotEmpty) {
+        // Some biometrics are enrolled.
+      }
+
+      // Use checks like this with caution!
+      if (didAuthenticate) {
+        AppLock.of(context)?.didUnlock();
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled) {
+        // Add handling of no hardware here.
+      } else if (e.code == auth_error.lockedOut ||
+          e.code == auth_error.permanentlyLockedOut) {
+        // ...
+      } else {
+        // ...
+      }
+    }
   }
 
   @override
@@ -59,17 +74,7 @@ class _SignIn2State extends State<SignIn2> {
                 const SizedBox(
                   height: 10,
                 ),
-                const Row(
-                  children: [
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Icon(Icons.arrow_back),
-                    SizedBox(
-                      width: 120,
-                    ),
-                  ],
-                ),
+
                 Image.asset(
                   height: 50,
                   width: 200,
@@ -84,17 +89,6 @@ class _SignIn2State extends State<SignIn2> {
                 //   color: Colors.indigoAccent.shade700,
                 // ),
 
-                const AppSmallText(
-                  text: '080*********',
-                  alignCenter: false,
-                ),
-                // const AppSmallText(
-                //   text: 'Sign in to get back in the loop!',
-                //   alignCenter: false,
-                // ),
-                // const SizedBox(
-                //   height: 80,
-                // ),
                 AppSmallText(
                   text: !widget.useBiometrics
                       ? 'Enter your password to continue'
@@ -104,74 +98,14 @@ class _SignIn2State extends State<SignIn2> {
                 const SizedBox(
                   height: 80,
                 ),
-                if (!widget.useBiometrics) ...[
-                  GestureDetector(
-                    onTap: () {},
-                    child: CustomTextField(
-                        isSelected: true,
-                        controller: passwordController,
-                        hintText: 'Password',
-                        icon: const Icon(
-                          Icons.password_rounded,
-                          size: 18,
-                        ),
-                        isPassword: true),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          handleForgotPassword(context);
-                        },
-                        child: Text(
-                          'Forgot Password?',
-                          style: TextStyle(color: Colors.indigoAccent.shade700),
-                        ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 100),
-                  AppButton(
-                    isloading: isloading,
+                AppButton(
                     text: 'Login',
+                    backgroundColor:primaryColor,
                     textColor: Colors.white,
-                    backgroundColor: Colors.indigoAccent.shade700,
-                    onTap: () async {
-                      setState(() {
-                        isloading = true;
-                      });
-                      // !unlock app
-                      await unlock();
-                      Future.delayed(const Duration(seconds: 3));
-
-                      setState(() {
-                        isloading = false;
-                      });
+                    onTap: () {
+                      unlock(context);
                     },
-                  ),
-                  const SizedBox(height: 10),
-                  AppSmallText(
-                    color: Colors.indigoAccent.shade700,
-                    text: 'Login with fingerprint instead',
-                    alignCenter: false,
-                  ),
-                ] else ...[
-                  Icon(
-                    Icons.fingerprint,
-                    size: 60,
-                    color: Colors.indigoAccent.shade700,
-                  ),
-                  const SizedBox(height: 80),
-                  Text(
-                    'Login with password instead',
-                    style: TextStyle(color: Colors.indigoAccent.shade700),
-                  )
-                ],
-
+                    isloading: isloading),
                 const SizedBox(height: 30),
               ],
             ),

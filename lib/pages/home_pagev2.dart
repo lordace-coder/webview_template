@@ -1,5 +1,7 @@
+import 'package:charles_click/models/app_lock_provider.dart';
 import 'package:charles_click/models/webview_provider.dart';
 import 'package:charles_click/pages/error.dart';
+import 'package:charles_click/services/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_lock/flutter_app_lock.dart';
 
@@ -51,11 +53,15 @@ class _HomePagev2State extends State<HomePagev2> {
 
   @override
   Widget build(BuildContext context) {
-    widget.initialUrl ??= 'https://charlesclicksvtu.com/mobile/home/';
+    widget.initialUrl ??= 'https://charlesclicksvtu.com/mobile/login/';
+
     final provider =
         Provider.of<WebViewProgressProvider>(context, listen: false);
+
+    final prefs = Provider.of<AuthProvider>(context, listen: false).pref;
+    final cookies = prefs.getStringList('cookies') ?? [];
     return Scaffold(
-        backgroundColor: primary,
+        backgroundColor: primaryColor,
         body: SafeArea(
           child: WillPopScope(
             onWillPop: () async {
@@ -81,18 +87,21 @@ class _HomePagev2State extends State<HomePagev2> {
                 }),
                 Expanded(
                   child: InAppWebView(
+                    initialSettings: InAppWebViewSettings(
+                      javaScriptEnabled: true,
+                      sharedCookiesEnabled: true,
+                    ),
                     onReceivedHttpError: (x, y, z) => onError(context),
-                    onReceivedError: (x, y, z) => onError(context),
-                    onWebViewCreated: (controller) {
+                    onReceivedError: (x, y, z) {
+                      print('recieved error');
+                      onError(context);
+                    },
+                    onWebViewCreated: (controller) async {
                       this.controller = controller;
                     },
                     pullToRefreshController: refresh,
                     onLoadStart: (_, uri) {
                       provider.setLoading(true);
-                      if (uri!.path.contains('login')) {
-                        //TODO ask the user if they want to continue to the login page since they are not authenticated
-                        AppLock.of(context)!.showLockScreen();
-                      }
                     },
                     onLoadStop: (_, uri) {
                       provider.setLoading(false);
@@ -116,6 +125,7 @@ class _HomePagev2State extends State<HomePagev2> {
 void onError(
   BuildContext context,
 ) {
+  print('error called');
   Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) {
     return const ErrorPage();
   }));

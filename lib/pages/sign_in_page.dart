@@ -1,5 +1,8 @@
 import 'package:charles_click/services/functions.dart';
+import 'package:charles_click/services/requests.dart';
+import 'package:charles_click/services/themes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_lock/flutter_app_lock.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -9,31 +12,27 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
-  final usernameController = TextEditingController();
 
   bool isvisible = false;
-  bool formIsValid() {
-    if (usernameController.text.isEmpty) {
-      // showErrorBanner(context, "username is required");
-      return false;
-    } else if (passwordController.text.isEmpty) {
-      // showErrorBanner(context, "Password is required");
-      return false;
-    }
-    return true;
-  }
 
   bool isloggedin = false;
   int currentIndex = 0;
   bool isloading = false;
+  Future unlock() async {
+    AppLock.of(context)?.didUnlock();
+    await isAuthenticated(
+      phone: phoneController.text,
+      password: passwordController.text,
+    );
+  }
 
   @override
   void dispose() {
     // Dispose of each controller
 
-    usernameController.dispose();
+    phoneController.dispose();
     passwordController.dispose();
 
     super.dispose();
@@ -83,7 +82,7 @@ class _SignInPageState extends State<SignInPage> {
                   },
                   child: CustomTextField(
                       isSelected: currentIndex == 0,
-                      controller: usernameController,
+                      controller: phoneController,
                       hintText: 'Phone number',
                       icon: const Icon(
                         Icons.person,
@@ -116,9 +115,9 @@ class _SignInPageState extends State<SignInPage> {
                   children: [
                     GestureDetector(
                       onTap: () => handleForgotPassword(context),
-                      child: Text(
+                      child: const Text(
                         'Forgot Password?',
-                        style: TextStyle(color: Colors.indigoAccent.shade700),
+                        style: TextStyle(color: primaryColor),
                       ),
                     )
                   ],
@@ -128,19 +127,16 @@ class _SignInPageState extends State<SignInPage> {
                   isloading: isloading,
                   text: 'Login',
                   textColor: Colors.white,
-                  backgroundColor: Colors.indigoAccent.shade700,
+                  backgroundColor: primaryColor,
                   onTap: () async {
                     setState(() {
                       isloading = true;
                     });
-                    Future.delayed(const Duration(seconds: 3));
+                    await unlock();
 
-                    if (formIsValid()) {
-                      final Map<String, String> data = {
-                        "username": usernameController.text,
-                        "password": passwordController.text,
-                      };
-                    }
+                    setState(() {
+                      isloading = false;
+                    });
                   },
                 ),
                 const SizedBox(height: 30),

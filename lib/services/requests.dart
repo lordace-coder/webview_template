@@ -15,6 +15,7 @@ Future<bool> isAuthenticated({
     'password': password,
     'device': "200100200",
   });
+
   try {
     final response = await dio.post(
       'https://charlesclicksvtu.com/mobile/home/includes/route.php?login',
@@ -27,6 +28,9 @@ Future<bool> isAuthenticated({
       ),
     );
     if (response.statusCode == 200) {
+      SharedPreferences pref = await SharedPreferences.getInstance();
+      pref.setString('phone', phone);
+      pref.setString('password', password);
       await saveCookiesAndLocalStorage(response);
       return true;
     }
@@ -65,56 +69,4 @@ void navigateToWebViewPage(BuildContext context) {
       builder: (context) => HomePagev2(),
     ),
   );
-}
-
-class WebViewPage extends StatelessWidget {
-  const WebViewPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('WebView')),
-      body: FutureBuilder<SharedPreferences>(
-        future: SharedPreferences.getInstance(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final prefs = snapshot.data!;
-          final cookies = prefs.getStringList('cookies') ?? [];
-
-          return InAppWebView(
-            initialUrlRequest:
-                URLRequest(url: WebUri('https://charlesclicksvtu.com')),
-            initialOptions: InAppWebViewGroupOptions(
-              crossPlatform: InAppWebViewOptions(
-                javaScriptEnabled: true,
-              ),
-            ),
-            onWebViewCreated: (InAppWebViewController controller) async {
-              // Set cookies
-              for (var cookie in cookies) {
-                await CookieManager.instance().setCookie(
-                  url: WebUri('https://charlesclicksvtu.com'),
-                  name: cookie.split('=')[0],
-                  value: cookie.split('=')[1].split(';')[0],
-                );
-              }
-
-              // Set local storage
-              prefs
-                  .getKeys()
-                  .where((key) => key.startsWith('localStorage_'))
-                  .forEach((key) {
-                final value = prefs.getString(key) ?? '';
-                controller.evaluateJavascript(
-                    source:
-                        "localStorage.setItem('${key.substring(11)}', '$value');");
-              });
-            },
-          );
-        },
-      ),
-    );
-  }
 }

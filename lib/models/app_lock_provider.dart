@@ -35,9 +35,6 @@ class AuthProvider extends ChangeNotifier {
 
   // check if the user has data saved
   bool hasData() {
-    return !(phoneNumber == null &&
-        phoneNumber!.isEmpty &&
-        password == null &&
-        password!.isEmpty);
+    return !(phoneNumber == null || password == null);
   }
 }
