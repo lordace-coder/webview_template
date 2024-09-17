@@ -34,7 +34,7 @@ class AppLifecycleObserver extends WidgetsBindingObserver {
       content: NotificationContent(
         id: 10,
         channelKey: 'basic_channel',
-        largeIcon: 'assets/mainlogo.png',
+        largeIcon: 'asset://assets/mainlogo.png',
         title: 'Charles Clicks',
         body: 'Cheap and affordable data deals. click to purchase them now!!',
       ),

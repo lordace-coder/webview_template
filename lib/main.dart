@@ -1,12 +1,12 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_app_lock/flutter_app_lock.dart';
 import 'package:charles_click/models/app_lock_provider.dart';
 import 'package:charles_click/models/webview_provider.dart';
 import 'package:charles_click/pages/home_pagev2.dart';
-import 'package:charles_click/pages/sign_in_page.dart';
 import 'package:charles_click/pages/sign_up_2.dart';
 import 'package:charles_click/services/notifications.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_app_lock/flutter_app_lock.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -60,8 +60,10 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Charles Clicks VTU',
       debugShowCheckedModeBanner: false,
       home: AppLock(
+        backgroundLockLatency: const Duration(seconds: 15),
         builder: (context, obj) {
           return HomePagev2();
         },

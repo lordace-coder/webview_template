@@ -1,5 +1,5 @@
-import 'package:charles_click/pages/home_pagev2.dart';
 import 'package:flutter/material.dart';
+import 'package:charles_click/pages/home_pagev2.dart';
 
 class LandingPage extends StatelessWidget {
   LandingPage({super.key});

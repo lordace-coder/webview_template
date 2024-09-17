@@ -1,8 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_app_lock/flutter_app_lock.dart';
 import 'package:charles_click/services/functions.dart';
 import 'package:charles_click/services/requests.dart';
 import 'package:charles_click/services/themes.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_app_lock/flutter_app_lock.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -270,7 +270,7 @@ class AppButton extends StatelessWidget {
         height: 40,
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.indigoAccent.shade700),
+          // border: Border.all(color: Colors.indigoAccent.shade700),
           borderRadius: BorderRadius.circular(10),
           color: backgroundColor,
         ),

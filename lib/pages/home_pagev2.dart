@@ -1,11 +1,10 @@
+import 'package:flutter/material.dart';
+
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:charles_click/models/app_lock_provider.dart';
 import 'package:charles_click/models/webview_provider.dart';
 import 'package:charles_click/pages/error.dart';
 import 'package:charles_click/services/themes.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_app_lock/flutter_app_lock.dart';
-
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
 
 final primary = Colors.indigoAccent.shade700;
@@ -25,6 +24,7 @@ class _HomePagev2State extends State<HomePagev2> {
         const PlatformInAppWebViewControllerCreationParams(id: 'controller'),
   );
   late PullToRefreshController refresh;
+  bool loadingError = false;
   bool controllerDisposed = false;
   _refresh() {
     // make refresh to stop
@@ -51,6 +51,18 @@ class _HomePagev2State extends State<HomePagev2> {
     super.dispose();
   }
 
+  onError() {
+    setState(() {
+      loadingError = true;
+    });
+  }
+
+  clearError() {
+    setState(() {
+      loadingError = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     widget.initialUrl ??= 'https://charlesclicksvtu.com/mobile/login/';
@@ -62,6 +74,20 @@ class _HomePagev2State extends State<HomePagev2> {
     final cookies = prefs.getStringList('cookies') ?? [];
     return Scaffold(
         backgroundColor: primaryColor,
+        floatingActionButton: loadingError
+            ? FloatingActionButton(
+                onPressed: () async {
+                  print('loading error $loadingError');
+                  _refresh();
+                  clearError();
+                },
+                backgroundColor: primaryColor,
+                child: const Icon(
+                  Icons.refresh,
+                  color: Colors.white,
+                ),
+              )
+            : Container(),
         body: SafeArea(
           child: WillPopScope(
             onWillPop: () async {
@@ -73,60 +99,75 @@ class _HomePagev2State extends State<HomePagev2> {
               }
               return !canGoBack;
             },
-            child: Column(
+            // wrapper to display and hide error widget
+            child: Stack(
               children: [
-                Consumer<WebViewProgressProvider>(builder:
-                    (BuildContext context, WebViewProgressProvider value,
-                        Widget? child) {
-                  if (value.isLoading) {
-                    return LinearProgressIndicator(
-                      value: value.progress,
-                    );
-                  }
-                  return Container();
-                }),
-                Expanded(
-                  child: InAppWebView(
-                    initialSettings: InAppWebViewSettings(
-                      javaScriptEnabled: true,
-                      sharedCookiesEnabled: true,
-                    ),
-                    onReceivedHttpError: (x, y, z) => onError(context),
-                    onReceivedError: (x, y, z) {
-                      print('recieved error');
-                      onError(context);
-                    },
-                    onWebViewCreated: (controller) async {
-                      this.controller = controller;
-                    },
-                    pullToRefreshController: refresh,
-                    onLoadStart: (_, uri) {
-                      provider.setLoading(true);
-                    },
-                    onLoadStop: (_, uri) {
-                      provider.setLoading(false);
-                    },
-                    onProgressChanged: (_, prog) {
-                      if (provider.isLoading) {
-                        provider.updateProgress(prog / 100);
+                Column(
+                  children: [
+                    Consumer<WebViewProgressProvider>(builder:
+                        (BuildContext context, WebViewProgressProvider value,
+                            Widget? child) {
+                      if (value.isLoading) {
+                        return LinearProgressIndicator(
+                          value: value.progress,
+                        );
                       }
-                    },
-                    initialUrlRequest:
-                        URLRequest(url: WebUri(widget.initialUrl!)),
-                  ),
+                      return Container();
+                    }),
+                    Expanded(
+                      child: InAppWebView(
+                        initialSettings: InAppWebViewSettings(
+                          javaScriptEnabled: true,
+                          sharedCookiesEnabled: true,
+                        ),
+                        onWebViewCreated: (controller) async {
+                          this.controller = controller;
+                        },
+                        onReceivedError: (x, y, err) {
+                          if (err.type == WebResourceErrorType.HOST_LOOKUP) {
+                            print('host lookup error');
+                            onError();
+                          }
+                        },
+                        pullToRefreshController: refresh,
+                        onLoadStart: (_, uri) {
+                          provider.setLoading(true);
+                        },
+                        onLoadStop: (_, uri) {
+                          provider.setLoading(false);
+                          print('loading stopped');
+                        },
+                        onProgressChanged: (_, prog) {
+                          if (provider.isLoading) {
+                            provider.updateProgress(prog / 100);
+                          }
+                        },
+                        initialUrlRequest:
+                            URLRequest(url: WebUri(widget.initialUrl!)),
+                      ),
+                    ),
+                  ],
                 ),
+                if (loadingError)
+                  Positioned(
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: ColoredBox(
+                      color: Colors.white,
+                      child: ErrorScreen(
+                        reload: () async {
+                          await controller.reload();
+                          clearError();
+                          return true;
+                        },
+                      ),
+                    ),
+                  )
               ],
             ),
           ),
         ));
   }
-}
-
-void onError(
-  BuildContext context,
-) {
-  print('error called');
-  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) {
-    return const ErrorPage();
-  }));
 }
